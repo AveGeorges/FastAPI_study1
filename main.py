@@ -1,50 +1,46 @@
 from fastapi import FastAPI, HTTPException
 import uvicorn
-from pydantic import BaseModel
+
+from data import accounts, users
+from models import UserSchema, AccountSchema
 
 
 app = FastAPI()
 
-accounts = [
-    {
-        'account_id': 1,
-        'account_name': 'Поездка в Москву',
-        'account_type': 'Накопительный',
-        'account_balance': 0,
-        'currency': 'RUB'
-    },
-    {
-        'account_id': 2,
-        'account_name': 'Тинькофф Black',
-        'account_type': 'Банковская карта',
-        'account_balance': 15000,
-        'currency': 'RUB'
-    }
-]
+
+# users endpoints 
+@app.post("/users", summary='Добавить нового пользователя', tags=['Пользователи'])
+def add_user(new_user: UserSchema):
+   users.append({
+        "user_id": len(users) + 1,
+        "user_name": new_user.account_name,
+        "user_password": new_user.account_balance,
+        "email": new_user.currency
+    })
+   return {"success": True, "message": "Пользователь успешно добавлен"}
 
 
+@app.get("/users", summary='Добавить нового пользователя', tags=['Пользователи'])
+def get_users() -> list[UserSchema]:
+   return users
+
+
+# accounts endpoints 
 @app.get("/accounts", summary='Получить все счета', tags=['Финансы'])
-def get_accounts():
+def get_accounts() -> list[AccountSchema]: 
     return accounts
 
 
 @app.get("/accounts/{account_id}", summary='Получить информацию о счете', tags=['Финансы'])
-def get_account(account_id: int):
+def get_account(account_id: int) -> AccountSchema:
     for account in accounts:
         if account_id == account["account_id"]:
             return account
     raise HTTPException(status_code=404, detail='Счет не найден')
 
 
-class NewAccount(BaseModel):
-    account_name: str
-    account_type: str
-    account_balance: int
-    currency: str
-
-
 @app.post("/accounts", summary='Добавить новый счет', tags=['Финансы'])
-def create_book(new_account: NewAccount):
+def add_account(new_account: AccountSchema):
     accounts.append({
         "account_id": len(accounts) + 1,
         "account_name": new_account.account_name,

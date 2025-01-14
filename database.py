@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import select
 
 app = FastAPI()
 
@@ -78,7 +79,9 @@ async def add_target(new_target: TargetSchema, session: SessionDep):
 
 @app.get("/targets")
 async def get_targets(session: SessionDep):
-   pass
+   query = select(FinancalTargetModel)
+   result = await session.execute(query)
+   return result.scalars().all()
 
 
 if __name__ == "__main__":

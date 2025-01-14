@@ -13,6 +13,6 @@ class AccountSchema(BaseModel):
    account_name: str = Field(max_length=50)
    account_type: str
    account_balance: int = Field(ge=0)
-   currency: str
+   currency: str = Field(max_length=50)
     
    model_config = ConfigDict(extra='forbid')

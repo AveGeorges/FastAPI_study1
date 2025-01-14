@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from typing import Annotated
+from fastapi import FastAPI, Depends
 import uvicorn
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 app = FastAPI()
@@ -15,6 +16,10 @@ async def get_session():
    async with new_session() as session:
       yield session
       
+
+# Создание инъекции зависсссмосстей - создание сесии
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
+
 
 class Base(DeclarativeBase):
    pass
@@ -54,12 +59,25 @@ class TargetSchema(TargetAddSchema):
 
 
 @app.post("/targets")
-async def add_target(new_target: TargetSchema):
-   pass
+async def add_target(new_target: TargetSchema, session: SessionDep):
+   # прокидываем через orm модель(FinancalTargetModel) поля из pydantiсс схемы (TargetAddSchema)
+   new_target = FinancalTargetModel(
+      target_name = new_target.target_name,
+      target_description = new_target.target_description,
+      target_balance = new_target.target_balance,
+      target_purpose = new_target.target_purpose,
+      currency = new_target.currency
+   )
+   # в сессию алхимии добавляем созданный объект для дальнейшего его добавления в бд
+   session.add(new_target)
+   # подтверждение транзакций сессии
+   await session.commit()
+
+   return {"success": True, "message": 'Финансовая цель успешно добавлена'}
 
 
 @app.get("/targets")
-async def get_targets():
+async def get_targets(session: SessionDep):
    pass
 
 

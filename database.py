@@ -47,7 +47,7 @@ async def setup_database():
    return {"success": True}
 
 
-# создание модели(схемы) для цели Target
+# создание модели(схемы) для цели Target через pydantic
 class TargetAddSchema(BaseModel):
    target_name: str = Field(max_length=50)
    target_description: str = Field(max_length=200)
@@ -59,6 +59,7 @@ class TargetSchema(TargetAddSchema):
    id: int
 
 
+# добавление новой цели в бд
 @app.post("/targets")
 async def add_target(new_target: TargetSchema, session: SessionDep):
    # прокидываем через orm модель(FinancalTargetModel) поля из pydantiсс схемы (TargetAddSchema)
@@ -77,6 +78,7 @@ async def add_target(new_target: TargetSchema, session: SessionDep):
    return {"success": True, "message": 'Финансовая цель успешно добавлена'}
 
 
+# получение всех целей из бд
 @app.get("/targets")
 async def get_targets(session: SessionDep):
    query = select(FinancalTargetModel)
